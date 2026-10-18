@@ -15,6 +15,7 @@ import type {
   NavbarProps,
   Project,
 } from "@/types/blocks";
+import { SCHEMA_VERSION } from "@/types/blocks";
 
 /** Where a block sits in the tree. `parentId: null` means root. */
 export interface BlockLocation {
@@ -195,5 +196,18 @@ export function mapActiveTree(
   return {
     ...project,
     pages: project.pages.map((page, i) => (i === 0 ? { ...page, tree: fn(page.tree) } : page)),
+  };
+}
+
+/** A brand-new project: one empty "Home" page, versioned, no assets. */
+export function createEmptyProject(name: string): Project {
+  const now = new Date().toISOString();
+  return {
+    version: SCHEMA_VERSION,
+    name,
+    createdAt: now,
+    updatedAt: now,
+    pages: [{ id: nanoid(8), name: "Home", tree: [] }],
+    assets: [],
   };
 }
