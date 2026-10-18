@@ -128,3 +128,10 @@
     @apply font-sans;
     }
 }
+
+/* Canvas: empty editable regions get a visible, clickable placeholder.
+   (::before is not part of innerText, so it never gets committed.) */
+.lw-editable:empty::before {
+  content: "…";
+  opacity: 0.35;
+}
