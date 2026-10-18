@@ -26,6 +26,7 @@ import {
   useDndUi,
   type ActiveDrag,
 } from "@/components/canvas/dnd";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { TopBar } from "./TopBar";
 import { BlocksPanel } from "./BlocksPanel";
 import { Canvas } from "./Canvas";
@@ -44,6 +45,7 @@ function EditorShellInner() {
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
   );
   const { dropTarget, setDropTarget, activeDrag, setActiveDrag } = useDndUi();
+  useKeyboardShortcuts();
 
   const readDragged = (data: Record<string, unknown> | undefined): ActiveDrag | null => {
     if (!data) return null;
