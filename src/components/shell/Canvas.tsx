@@ -1,16 +1,30 @@
+import { Fragment } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { MousePointerSquareDashed } from "lucide-react";
 import { activePage } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
 import { BlockRenderer } from "@/components/canvas/BlockRenderer";
+import { DropLine, useDndUi } from "@/components/canvas/dnd";
 
 /**
  * Canvas — the page surface. Renders the block tree from the store on a
- * white "paper" inside dark editor chrome. Clicking the empty paper
- * deselects.
+ * white "paper" inside dark editor chrome. The paper is the ROOT drop
+ * target (append at end) and each root block is a sortable item with an
+ * insertion line between them.
  */
 export function Canvas() {
   const tree = useEditor((s) => activePage(s.project).tree);
   const select = useEditor((s) => s.select);
+
+  const { setNodeRef: setRootRef, isOver: isRootOver } = useDroppable({
+    id: "root",
+    data: { source: "container", containerParentId: null },
+  });
+  const { dropTarget } = useDndUi();
+
+  const lineAtRoot = (i: number) =>
+    dropTarget !== null && dropTarget.parentId === null && dropTarget.index === i;
 
   return (
     <main
@@ -20,15 +34,33 @@ export function Canvas() {
       }}
     >
       <div className="mx-auto w-full max-w-[1100px]">
-        <div className="min-h-[70vh] rounded-lg border bg-white p-0 shadow-sm">
+        <div
+          ref={setRootRef}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) select(null); // click on blank paper
+          }}
+          className={
+            "min-h-[70vh] rounded-lg border bg-white p-0 shadow-sm transition-colors " +
+            (isRootOver && tree.length === 0 ? "border-blue-400" : "")
+          }
+        >
           {tree.length === 0 ? (
             <EmptyCanvasHint />
           ) : (
-            <div className="flex flex-col">
-              {tree.map((block) => (
-                <BlockRenderer key={block.id} block={block} parentId={null} />
-              ))}
-            </div>
+            <SortableContext
+              items={tree.map((b) => b.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col">
+                {tree.map((block, i) => (
+                  <Fragment key={block.id}>
+                    {lineAtRoot(i) && <DropLine />}
+                    <BlockRenderer block={block} parentId={null} />
+                  </Fragment>
+                ))}
+                {lineAtRoot(tree.length) && <DropLine />}
+              </div>
+            </SortableContext>
           )}
         </div>
       </div>
