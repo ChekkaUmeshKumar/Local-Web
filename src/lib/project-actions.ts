@@ -1,0 +1,95 @@
+/**
+ * Project lifecycle orchestration: io (disk) + store (hydrate) + toasts.
+ * Shared by the start screen, the top bar and the keyboard shortcuts so
+ * every entry point behaves identically.
+ */
+
+import { toast } from "sonner";
+import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
+import { activePage } from "@/types/blocks";
+import { useEditor } from "@/store/editor";
+import {
+  addRecentProject,
+  createProjectOnDisk,
+  openProjectFromDisk,
+  projectFilePath,
+  saveProjectToDisk,
+} from "@/lib/io";
+
+/** True when the user has a project open. */
+export function hasOpenProject(): boolean {
+  return useEditor.getState().projectDir !== null;
+}
+
+/** Ctrl+S / Save button: write the current project and clear the dirty dot. */
+export async function saveCurrentProject(): Promise<boolean> {
+  const { project, projectDir } = useEditor.getState();
+  if (!projectDir) return false;
+
+  try {
+    await saveProjectToDisk(project, projectDir);
+    useEditor.getState().markSaved();
+    toast.success("Saved", { description: "project.json updated" });
+    return true;
+  } catch (err) {
+    toast.error("Save failed", { description: String(err) });
+    return false;
+  }
+}
+
+/** Create a new project folder on disk and open it in the editor. */
+export async function createProjectFlow(name: string, parentDir: string): Promise<boolean> {
+  try {
+    const { project, dir } = await createProjectOnDisk(name, parentDir);
+    useEditor.getState().hydrate(project, dir);
+    await addRecentProject({ name: project.name, dir, updatedAt: new Date().toISOString() });
+    toast.success("Project created", { description: dir });
+    return true;
+  } catch (err) {
+    toast.error("Couldn't create the project", {
+      description: err instanceof Error ? err.message : String(err),
+    });
+    return false;
+  }
+}
+
+/** Open flow: pick a project.json via dialog → load → hydrate. */
+export async function openProjectFlow(): Promise<boolean> {
+  const jsonPath = await openFileDialog({
+    multiple: false,
+    title: "Open a LocalWeb project",
+    filters: [{ name: "LocalWeb project", extensions: ["json"] }],
+  });
+  if (typeof jsonPath !== "string") return false; // cancelled
+  return loadAndHydrate(jsonPath);
+}
+
+/** Open a specific project.json path (recents use this). */
+export async function loadAndHydrate(jsonPath: string): Promise<boolean> {
+  try {
+    const loaded = await openProjectFromDisk(jsonPath);
+    useEditor.getState().hydrate(loaded.project, loaded.dir);
+    await addRecentProject({
+      name: loaded.project.name,
+      dir: loaded.dir,
+      updatedAt: new Date().toISOString(),
+    });
+    return true;
+  } catch (err) {
+    toast.error("Couldn't open the project", {
+      description: err instanceof Error ? err.message : String(err),
+    });
+    return false;
+  }
+}
+
+/** Convenience for dialogs: the full path of the current project file. */
+export function currentProjectFilePath(): string | null {
+  const dir = useEditor.getState().projectDir;
+  return dir ? projectFilePath(dir) : null;
+}
+
+/** Convenience: the active tree (v1 = pages[0]). */
+export function currentTree() {
+  return activePage(useEditor.getState().project).tree;
+}

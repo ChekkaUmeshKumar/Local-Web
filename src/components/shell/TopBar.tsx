@@ -1,74 +1,135 @@
-import { toast } from "sonner";
-import { Eye, Package, Save } from "lucide-react";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile, writeFile } from "@tauri-apps/plugin-fs";
+/**
+ * Top bar — project identity (name + dirty dot) and global actions:
+ * New · Open · Save · Undo · Redo, with the Preview / Export placeholders
+ * (Phase 4 / 5). All project-switching goes through a dirty guard.
+ */
+
+import { useState } from "react";
+import { Eye, FilePlus2, FolderOpen, Package, Redo2, Save, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-/**
- * DEV-ONLY Phase 1 smoke test (removed in Phase 2 when real save/load lands).
- * Proves the app can: pick a folder → write a JSON file → read it back.
- * This is the riskiest capability in the product — verified before any
- * feature work is built on top of it.
- */
-async function ioSmokeTest() {
-  try {
-    const dir = await open({ directory: true, title: "Pick a test folder" });
-    if (!dir || typeof dir !== "string") return;
-
-    const path = `${dir}/localweb-io-test.json`;
-    const payload = { ok: true, testedAt: new Date().toISOString() };
-
-    await writeFile(path, new TextEncoder().encode(JSON.stringify(payload)));
-    const read = await readTextFile(path);
-    const parsed = JSON.parse(read) as { ok: boolean };
-
-    if (parsed.ok === true) {
-      toast.success("Disk I/O works ✔", {
-        description: `Wrote and read back ${path}`,
-      });
-    } else {
-      toast.error("IO test failed", { description: "Read-back mismatch." });
-    }
-  } catch (err) {
-    toast.error("IO test failed", {
-      description: String(err),
-    });
-  }
-}
+import { NewProjectDialog } from "@/components/chooser/NewProjectDialog";
+import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
+import { openProjectFlow, saveCurrentProject } from "@/lib/project-actions";
+import { useEditor, useUndoRedo } from "@/store/editor";
 
 export function TopBar() {
+  const projectName = useEditor((s) => s.project.name);
+  const projectDir = useEditor((s) => s.projectDir);
+  const dirty = useEditor((s) => s.dirty);
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
+
+  const [newOpen, setNewOpen] = useState(false);
+  const [pending, setPending] = useState<"new" | "open" | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  // New / Open pass through the unsaved-changes guard first.
+  const startNew = () => (dirty ? setPending("new") : setNewOpen(true));
+
+  const startOpen = async () => {
+    if (dirty) {
+      setPending("open");
+      return;
+    }
+    setBusy(true);
+    await openProjectFlow();
+    setBusy(false);
+  };
+
+  const handleDiscardAndContinue = async () => {
+    if (pending === "new") setNewOpen(true);
+    if (pending === "open") {
+      setBusy(true);
+      await openProjectFlow();
+      setBusy(false);
+    }
+    setPending(null);
+  };
+
   return (
     <header className="col-span-3 flex h-12 shrink-0 items-center gap-3 border-b bg-background px-4">
-      {/* App identity */}
+      {/* Project identity */}
       <span className="text-sm font-semibold tracking-tight">LocalWeb</span>
       <span className="text-border">/</span>
-
-      {/* Project name — static placeholder until Phase 2 wiring */}
-      <span className="text-sm text-muted-foreground">Untitled project</span>
-      <span className="size-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
+      <span className="max-w-56 truncate text-sm text-muted-foreground">
+        {projectName || "Untitled project"}
+      </span>
+      {dirty && (
+        <span className="size-1.5 shrink-0 rounded-full bg-amber-500" title="Unsaved changes" />
+      )}
 
       <div className="flex-1" />
 
-      {/* DEV-ONLY: Phase 1 IO smoke test */}
+      {/* Global actions */}
+      <Button variant="ghost" size="sm" onClick={startNew}>
+        <FilePlus2 />
+        New
+      </Button>
+      <Button variant="ghost" size="sm" onClick={() => void startOpen()} disabled={busy}>
+        <FolderOpen />
+        Open
+      </Button>
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="font-mono text-xs text-muted-foreground"
-            onClick={() => void ioSmokeTest()}
-          >
-            IO test
-          </Button>
+          <span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void saveCurrentProject()}
+              disabled={projectDir === null}
+            >
+              <Save />
+              Save
+            </Button>
+          </span>
         </TooltipTrigger>
-        <TooltipContent>Phase 1 check: write & read a JSON file</TooltipContent>
+        <TooltipContent>Save (Ctrl+S)</TooltipContent>
       </Tooltip>
 
+      <Separator orientation="vertical" className="mx-1 h-6" />
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={undo}
+              disabled={!canUndo}
+            >
+              <Undo2 />
+            </Button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={redo}
+              disabled={!canRedo}
+            >
+              <Redo2 />
+            </Button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent>
+      </Tooltip>
+
+      <Separator orientation="vertical" className="mx-1 h-6" />
+
+      {/* Phase 4 / 5 placeholders */}
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
@@ -80,7 +141,6 @@ export function TopBar() {
         </TooltipTrigger>
         <TooltipContent>Preview arrives in Phase 4</TooltipContent>
       </Tooltip>
-
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
@@ -93,17 +153,17 @@ export function TopBar() {
         <TooltipContent>Export arrives in Phase 5</TooltipContent>
       </Tooltip>
 
-      {/* Save — disabled placeholder until Phase 2 */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span>
-            <Button size="sm" variant="ghost" disabled>
-              <Save />
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Save (Ctrl+S) arrives in Phase 2</TooltipContent>
-      </Tooltip>
+      {/* Dialogs */}
+      <NewProjectDialog open={newOpen} onOpenChange={setNewOpen} />
+      <ConfirmDialog
+        open={pending !== null}
+        onOpenChange={(o) => !o && setPending(null)}
+        title="Discard unsaved changes?"
+        description="You have unsaved changes. Save first (Ctrl+S) if you want to keep them — continuing will leave them behind."
+        confirmLabel="Discard and continue"
+        destructive
+        onConfirm={() => void handleDiscardAndContinue()}
+      />
     </header>
   );
 }
