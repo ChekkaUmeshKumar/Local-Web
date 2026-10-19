@@ -1,4 +1,5 @@
 import { EditableText } from "@/components/canvas/EditableText";
+import { resolveStyles } from "@/lib/resolveStyles";
 import { useEditor } from "@/store/editor";
 import type { LinkProps } from "@/types/blocks";
 import type { BlockComponentProps } from "./shared";
@@ -10,9 +11,10 @@ export function LinkBlock({ block }: BlockComponentProps) {
 
   return (
     <a
+      className="lw-link"
       href={props.href}
+      style={resolveStyles(block.styles)}
       onClick={(e) => e.preventDefault()} // canvas is not a browser
-      className="inline-block text-sm font-medium text-blue-600 underline underline-offset-4"
     >
       <EditableText
         blockId={block.id}

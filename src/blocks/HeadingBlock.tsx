@@ -1,32 +1,20 @@
 import { EditableText } from "@/components/canvas/EditableText";
+import { resolveStyles } from "@/lib/resolveStyles";
 import { useEditor } from "@/store/editor";
-import { cn } from "@/lib/utils";
 import type { HeadingProps } from "@/types/blocks";
 import type { BlockComponentProps } from "./shared";
 
 const TAG = { 1: "h1", 2: "h2", 3: "h3", 4: "h4" } as const;
-const SIZE = {
-  1: "text-4xl",
-  2: "text-3xl",
-  3: "text-2xl",
-  4: "text-xl",
-} as const;
 
-/** Heading — h1–h4 by `level`, fully inline-editable. */
+/** Heading — h1–h4 by `level`, clamp-scaled by the base CSS. Fully inline-editable. */
 export function HeadingBlock({ block }: BlockComponentProps) {
   const props = block.props as HeadingProps;
   const updateProps = useEditor((s) => s.updateProps);
 
-  const level = props.level ?? 2;
-  const Tag = TAG[level];
+  const Tag = TAG[props.level ?? 2];
 
   return (
-    <Tag
-      className={cn(
-        "font-bold tracking-tight text-neutral-900",
-        SIZE[level],
-      )}
-    >
+    <Tag className="lw-heading" style={resolveStyles(block.styles)}>
       <EditableText
         blockId={block.id}
         value={props.text}
