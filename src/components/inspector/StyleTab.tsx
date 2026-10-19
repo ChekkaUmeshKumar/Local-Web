@@ -69,7 +69,8 @@ function Section({ title, isDefault, children }: { title: string; isDefault: boo
   );
 }
 
-/** Chip row; clicking the active chip again UNSETS the value ("default"). */
+/** Chip row; clicking the active chip again UNSETS the value ("default").
+ *  Wraps so long scales (7 spacing tokens) never overflow the 300px panel. */
 function ChipGroup<T extends string>({
   value,
   options,
@@ -86,9 +87,10 @@ function ChipGroup<T extends string>({
       onValueChange={(v) => onChange((v || undefined) as T | undefined)}
       variant="outline"
       size="sm"
+      className="flex-wrap justify-start"
     >
       {options.map((option) => (
-        <ToggleGroupItem key={option} value={option} className="h-7 px-2.5 text-[11px]">
+        <ToggleGroupItem key={option} value={option} className="h-7 px-2 text-[11px]">
           {option}
         </ToggleGroupItem>
       ))}
@@ -214,6 +216,7 @@ export function StyleTab({ block }: StyleTabProps) {
             }
             variant="outline"
             size="sm"
+            className="flex-wrap"
           >
             <ToggleGroupItem value="left" title="Left" className="size-7 p-0">
               <AlignLeft className="size-3.5" />

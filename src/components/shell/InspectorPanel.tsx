@@ -6,7 +6,6 @@
 
 import { useMemo } from "react";
 import { REGISTRY } from "@/blocks/registry";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { activePage } from "@/types/blocks";
@@ -65,16 +64,18 @@ export function InspectorPanel() {
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="style" className="mt-3 min-h-0 flex-1">
-          <ScrollArea className="h-full">
-            <StyleTab block={block} />
-          </ScrollArea>
+        <TabsContent
+          value="style"
+          className="mt-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+        >
+          <StyleTab block={block} />
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-3 min-h-0 flex-1">
-          <ScrollArea className="h-full">
-            <SettingsTab block={block} />
-          </ScrollArea>
+        <TabsContent
+          value="settings"
+          className="mt-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+        >
+          <SettingsTab block={block} />
         </TabsContent>
       </Tabs>
     </aside>

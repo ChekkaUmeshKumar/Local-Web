@@ -31,8 +31,15 @@ describe("resolveStyles", () => {
     expect(out.textAlign).toBe("center");
   });
 
-  it("maps colors.text to color", () => {
-    expect(resolveStyles({ colors: { text: "#123456" } }).color).toBe("#123456");
+  it("emits a font-family CSS variable so sections cascade into their text", () => {
+    const out = resolveStyles({ typography: { fontFamily: "poppins" } });
+    expect(out["--lw-font-family"]).toContain("'Poppins'");
+  });
+
+  it("maps colors.text to color + a cascade variable", () => {
+    const out = resolveStyles({ colors: { text: "#123456" } });
+    expect(out.color).toBe("#123456");
+    expect(out["--lw-text-color"]).toBe("#123456");
   });
 
   it("maps spacing tokens to px values", () => {

@@ -51,9 +51,10 @@ a {
 }
 
 .lw-navbar__brand {
+  color: var(--lw-text-color, #0f172a);
+  font-family: var(--lw-font-family, inherit);
   font-size: 1.125rem;
   font-weight: 700;
-  color: #0f172a;
 }
 
 .lw-navbar__links {
@@ -113,7 +114,10 @@ a {
 
 /* ── 4. Heading ──────────────────────────────────────────────────── */
 .lw-heading {
-  color: #0f172a;
+  /* var() = a section-level text color / font cascades in; the fallback
+     is the heading's own default. A style set on THIS block overrides it. */
+  color: var(--lw-text-color, #0f172a);
+  font-family: var(--lw-font-family, inherit);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -127,7 +131,8 @@ h4.lw-heading { font-size: 1.25rem; }
 
 /* ── 5. Text ─────────────────────────────────────────────────────── */
 .lw-text {
-  color: #475569;
+  color: var(--lw-text-color, #475569);
+  font-family: var(--lw-font-family, inherit);
   font-size: 1rem;
   line-height: 1.7;
   max-width: 65ch;
@@ -211,7 +216,8 @@ h4.lw-heading { font-size: 1.25rem; }
 }
 
 .lw-footer__brand {
-  color: #f1f5f9;
+  color: var(--lw-text-color, #f1f5f9);
+  font-family: var(--lw-font-family, inherit);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -242,7 +248,8 @@ h4.lw-heading { font-size: 1.25rem; }
 }
 
 .lw-footer__copy {
-  color: #64748b;
+  color: var(--lw-text-color, #64748b);
+  font-family: var(--lw-font-family, inherit);
   font-size: 0.8125rem;
 }
 

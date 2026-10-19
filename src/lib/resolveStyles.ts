@@ -30,17 +30,32 @@ export interface ResolveStylesOptions {
   resolveAsset?: (relative: string) => string;
 }
 
-export function resolveStyles(s: BlockStyles = {}, opts: ResolveStylesOptions = {}): CSSProperties {
-  const out: CSSProperties = {};
+/**
+ * Resolved styles may carry CSS custom properties (–-lw-*) that let a
+ * SECTION-level style cascade into its content elements (blocks.css reads
+ * them with fallbacks). The generator (Phase 4) emits them identically.
+ */
+type ResolvedStyles = CSSProperties & Record<string, string | number | undefined>;
+
+export function resolveStyles(s: BlockStyles = {}, opts: ResolveStylesOptions = {}): ResolvedStyles {
+  const out: ResolvedStyles = {};
 
   const t = s.typography;
-  if (t?.fontFamily) out.fontFamily = FONT_STACKS[t.fontFamily];
+  if (t?.fontFamily) {
+    out.fontFamily = FONT_STACKS[t.fontFamily];
+    // Cascades into headings/text inside a section (they read the variable).
+    out["--lw-font-family"] = FONT_STACKS[t.fontFamily];
+  }
   if (t?.fontSize) out.fontSize = FONT_SIZES[t.fontSize];
   if (t?.fontWeight) out.fontWeight = t.fontWeight;
   if (t?.lineHeight) out.lineHeight = t.lineHeight;
   if (t?.textAlign) out.textAlign = t.textAlign;
 
-  if (s.colors?.text) out.color = s.colors.text;
+  if (s.colors?.text) {
+    out.color = s.colors.text;
+    // Cascades into headings/text inside a section (they read the variable).
+    out["--lw-text-color"] = s.colors.text;
+  }
 
   const sp = s.spacing;
   if (sp?.padding) out.padding = SPACING[sp.padding];
