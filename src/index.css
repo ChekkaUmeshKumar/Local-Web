@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+/* LocalWeb base layer — default block look + ALL responsive rules.
+   Also copied verbatim into exported styles.css in Phase 4. */
+@import "./styles/blocks.css";
 
 @custom-variant dark (&:is(.dark *));
 
