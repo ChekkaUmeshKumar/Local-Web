@@ -6,7 +6,6 @@
 
 import { useState } from "react";
 import { HexColorPicker } from "react-colorful";
-import "react-colorful/dist/index.css";
 import { X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";

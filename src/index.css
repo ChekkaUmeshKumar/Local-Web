@@ -1,12 +1,14 @@
+/* Google Fonts for the canvas font-family tokens (Inter, Poppins,
+   Playfair Display, Merriweather, Lora). Requires internet while
+   editing; falls back to system stacks offline. The export generator
+   (Phase 4) emits <link> tags only for fonts actually used.
+   NOTE: must be the FIRST import (@import rules must precede all rules). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-/* Google Fonts for the canvas font-family tokens (Inter, Poppins,
-   Playfair Display, Merriweather, Lora). Requires internet while
-   editing; falls back to system stacks offline. The export generator
-   (Phase 4) emits <link> tags only for fonts actually used. */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
 /* LocalWeb base layer — default block look + ALL responsive rules.
    Also copied verbatim into exported styles.css in Phase 4. */
 @import "./styles/blocks.css";
