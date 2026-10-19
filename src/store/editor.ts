@@ -19,6 +19,7 @@ import { create, useStore } from "zustand";
 import { temporal } from "zundo";
 import type { TemporalState } from "zundo";
 import type {
+  AssetRecord,
   BlockNode,
   BlockProps,
   BlockStyles,
@@ -61,6 +62,12 @@ export interface EditorState {
   /** Replace the whole project (New/Open). Resets history. */
   hydrate: (project: Project, dir: string) => void;
   markSaved: () => void;
+
+  // ── assets ──
+  /** Append an AssetRecord after importAsset succeeded on disk. */
+  addAsset: (record: AssetRecord) => void;
+  /** Remove an AssetRecord (file already deleted from disk by the caller). */
+  removeAsset: (fileName: string) => void;
 }
 
 /** Only `project` participates in undo/redo — UI state never does. */
@@ -174,6 +181,26 @@ export const useEditor = create<EditorState>()(
       },
 
       markSaved: () => set({ dirty: false }),
+
+      addAsset: (record) =>
+        set((s) => ({
+          project: {
+            ...s.project,
+            assets: [...s.project.assets, record],
+            updatedAt: new Date().toISOString(),
+          },
+          dirty: true,
+        })),
+
+      removeAsset: (fileName) =>
+        set((s) => ({
+          project: {
+            ...s.project,
+            assets: s.project.assets.filter((a) => a.fileName !== fileName),
+            updatedAt: new Date().toISOString(),
+          },
+          dirty: true,
+        })),
     }),
     {
       limit: 50,

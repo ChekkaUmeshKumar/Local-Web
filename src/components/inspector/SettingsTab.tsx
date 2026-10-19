@@ -10,7 +10,8 @@
  *   hero / text: content lives on the canvas (click to edit)
  */
 
-import { Images } from "lucide-react";
+import { useState } from "react";
+import { Images, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -25,6 +26,8 @@ import type {
   NavLink,
 } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
+import { pickAndImportAsset } from "@/lib/asset-actions";
+import { AssetManagerDialog } from "./AssetManagerDialog";
 import { LinksEditor } from "./LinksEditor";
 import { TextInputField } from "./TextInputField";
 
@@ -43,6 +46,16 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function SettingsTab({ block }: SettingsTabProps) {
   const updateProps = useEditor((s) => s.updateProps);
+  const [busy, setBusy] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
+
+  const handleChooseImage = async () => {
+    if (busy) return;
+    setBusy(true);
+    const record = await pickAndImportAsset();
+    if (record) updateProps(block.id, { src: `assets/${record.fileName}` });
+    setBusy(false);
+  };
 
   switch (block.type) {
     /* ── heading ─────────────────────────────────────────────── */
@@ -73,17 +86,30 @@ export function SettingsTab({ block }: SettingsTabProps) {
     case "image": {
       const props = block.props as ImageProps;
       return (
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <div className="flex flex-col gap-3 px-4 py-4">
           <Button
             variant="outline"
             size="sm"
             className="w-full"
-            disabled
-            title="File picking arrives with the asset pipeline (this phase)"
+            onClick={() => void handleChooseImage()}
+            disabled={busy}
           >
-            <Images />
+            {busy ? <Loader2 className="animate-spin" /> : <Images />}
             {props.src ? "Replace image…" : "Choose image…"}
           </Button>
+
+          {props.src && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-red-600 hover:text-red-700"
+              onClick={() => updateProps(block.id, { src: "" })}
+            >
+              <Trash2 />
+              Remove image
+            </Button>
+          )}
+
           <div className="flex flex-col gap-2">
             <Label className="text-xs text-muted-foreground">Alt text</Label>
             <TextInputField
@@ -93,6 +119,17 @@ export function SettingsTab({ block }: SettingsTabProps) {
               className="h-8 text-xs"
             />
           </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground"
+            onClick={() => setManagerOpen(true)}
+          >
+            Manage project images…
+          </Button>
+
+          <AssetManagerDialog open={managerOpen} onOpenChange={setManagerOpen} />
         </div>
       );
     }

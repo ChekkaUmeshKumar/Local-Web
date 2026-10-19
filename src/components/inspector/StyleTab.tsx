@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { AlignCenter, AlignLeft, AlignRight, RotateCcw } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, Loader2, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +43,8 @@ import type {
   SpacingToken,
 } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
+import { pickAndImportAsset } from "@/lib/asset-actions";
+import { AssetManagerDialog } from "./AssetManagerDialog";
 import { ColorField } from "./ColorField";
 
 interface StyleTabProps {
@@ -109,6 +111,17 @@ export function StyleTab({ block }: StyleTabProps) {
   const updateStyles = useEditor((s) => s.updateStyles);
   const styles = block.styles;
   const t = styles.typography ?? {};
+
+  const [bgBusy, setBgBusy] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
+
+  const handleChooseBackground = async () => {
+    if (bgBusy) return;
+    setBgBusy(true);
+    const record = await pickAndImportAsset();
+    if (record) updateStyles(block.id, { background: { image: `assets/${record.fileName}` } });
+    setBgBusy(false);
+  };
 
   const hasTypography = Object.keys(styles.typography ?? {}).length > 0;
   const hasColors = Boolean(styles.colors?.text);
@@ -279,7 +292,49 @@ export function StyleTab({ block }: StyleTabProps) {
             onChange={(color) => updateStyles(block.id, { background: { color } })}
           />
         </Row>
-        {/* Background image picker lands with the asset pipeline (same phase). */}
+        <div className="flex items-center justify-between gap-3">
+          <Label className="shrink-0 text-xs text-muted-foreground">Image</Label>
+          <div className="flex min-w-0 items-center gap-2">
+            {styles.background?.image ? (
+              <>
+                <span
+                  className="min-w-0 truncate font-mono text-[11px] text-muted-foreground"
+                  title={styles.background.image}
+                >
+                  {styles.background.image}
+                </span>
+                <button
+                  type="button"
+                  title="Clear background image"
+                  onClick={() => updateStyles(block.id, { background: { image: undefined } })}
+                  className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => void handleChooseBackground()}
+                disabled={bgBusy}
+              >
+                {bgBusy && <Loader2 className="size-3.5 animate-spin" />}
+                Choose…
+              </Button>
+            )}
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-muted-foreground"
+          onClick={() => setManagerOpen(true)}
+        >
+          Manage images…
+        </Button>
+        <AssetManagerDialog open={managerOpen} onOpenChange={setManagerOpen} />
       </Section>
 
       <div className="px-4 pt-1">

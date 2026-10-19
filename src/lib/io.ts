@@ -12,10 +12,19 @@
  *   - always join with forward slashes — Tauri fs accepts them on Windows
  */
 
-import { exists, mkdir, readTextFile, writeFile } from "@tauri-apps/plugin-fs";
+import {
+  copyFile,
+  exists,
+  mkdir,
+  readTextFile,
+  remove,
+  size,
+  writeFile,
+} from "@tauri-apps/plugin-fs";
 import { appConfigDir, join } from "@tauri-apps/api/path";
+import { nanoid } from "nanoid";
 import { SCHEMA_VERSION } from "@/types/blocks";
-import type { Project } from "@/types/blocks";
+import type { AssetRecord, Project } from "@/types/blocks";
 import { createEmptyProject } from "@/lib/tree";
 
 export const PROJECT_FILE = "project.json";
@@ -176,4 +185,74 @@ export async function addRecentProject(entry: RecentProject): Promise<void> {
   const path = await recentsFilePath();
   await mkdir(await appConfigDir(), { recursive: true }).catch(() => {});
   await writeFile(path, new TextEncoder().encode(JSON.stringify(next, null, 2)));
+}
+
+/* ── asset pipeline (Phase 3) ─────────────────────────────────────── */
+
+/** v1 accepts these image formats. */
+export const ASSET_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "svg"];
+
+/** Hard limit — keeps projects and exported sites fast. Compression is v2. */
+export const MAX_ASSET_BYTES = 5 * 1024 * 1024;
+
+export const IMAGE_DIALOG_FILTERS = [
+  { name: "Images", extensions: ASSET_EXTENSIONS },
+];
+
+function mimeFromExtension(ext: string): string {
+  switch (ext) {
+    case "png":
+      return "image/png";
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "webp":
+      return "image/webp";
+    case "svg":
+      return "image/svg+xml";
+    default:
+      return "application/octet-stream";
+  }
+}
+
+/**
+ * Import an image: validate type + size, copy it into the project's
+ * assets/ folder under a collision-safe name, and return its record.
+ * The STORED reference (props.src / background.image) is always the
+ * relative "assets/<fileName>" — the canvas converts via displaySrc.
+ */
+export async function importAsset(
+  sourcePath: string,
+  projectDir: string,
+): Promise<AssetRecord> {
+  const ext = (sourcePath.split(".").pop() ?? "").toLowerCase();
+  if (!ASSET_EXTENSIONS.includes(ext)) {
+    throw new Error(
+      `.${ext || "?"} files aren't supported — use ${ASSET_EXTENSIONS.join(", ")}.`,
+    );
+  }
+
+  const bytes = await size(sourcePath);
+  if (bytes > MAX_ASSET_BYTES) {
+    throw new Error("Image is larger than 5 MB — choose a smaller file (compression arrives in v2).");
+  }
+
+  // "photo of my cat!.jpg" → "photo-of-my-cat-a3f9c2.jpg"
+  const rawName = sourcePath.split(/[\\/]/).pop() ?? "image";
+  const base = slugify(rawName.replace(/\.[^.]+$/, ""));
+  const fileName = `${base}-${nanoid(6).toLowerCase()}.${ext}`;
+
+  const assetsPath = assetsDirPath(projectDir);
+  if (!(await exists(assetsPath))) await mkdir(assetsPath);
+  await copyFile(sourcePath, joinPath(assetsPath, fileName));
+
+  return { id: nanoid(10), fileName, type: mimeFromExtension(ext) };
+}
+
+/** Delete an asset's file from disk (only ever called for UNUSED assets). */
+export async function deleteAssetFromDisk(
+  projectDir: string,
+  fileName: string,
+): Promise<void> {
+  await remove(joinPath(assetsDirPath(projectDir), fileName));
 }

@@ -1,4 +1,4 @@
-import { resolveStyles } from "@/lib/resolveStyles";
+import { useBlockStyles } from "@/lib/useBlockStyles";
 import type { BlockComponentProps } from "./shared";
 
 /**
@@ -7,8 +7,9 @@ import type { BlockComponentProps } from "./shared";
  * section.lw-hero > div.lw-hero__inner > children
  */
 export function HeroBlock({ block, children }: BlockComponentProps) {
+  const style = useBlockStyles(block);
   return (
-    <section className="lw-hero" style={resolveStyles(block.styles)}>
+    <section className="lw-hero" style={style}>
       <div className="lw-hero__inner">{children}</div>
     </section>
   );

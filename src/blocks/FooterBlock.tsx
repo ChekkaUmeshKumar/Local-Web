@@ -1,5 +1,5 @@
 import { EditableText } from "@/components/canvas/EditableText";
-import { resolveStyles } from "@/lib/resolveStyles";
+import { useBlockStyles } from "@/lib/useBlockStyles";
 import { useEditor } from "@/store/editor";
 import type { FooterProps } from "@/types/blocks";
 import type { BlockComponentProps } from "./shared";
@@ -11,9 +11,10 @@ import type { BlockComponentProps } from "./shared";
 export function FooterBlock({ block, children }: BlockComponentProps) {
   const props = block.props as FooterProps;
   const updateProps = useEditor((s) => s.updateProps);
+  const style = useBlockStyles(block);
 
   return (
-    <footer className="lw-footer" style={resolveStyles(block.styles)}>
+    <footer className="lw-footer" style={style}>
       <div className="lw-footer__top">
         <span className="lw-footer__brand">
           <EditableText

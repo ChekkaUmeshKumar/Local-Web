@@ -1,5 +1,5 @@
 import { Image as ImageIcon } from "lucide-react";
-import { resolveStyles } from "@/lib/resolveStyles";
+import { useBlockStyles } from "@/lib/useBlockStyles";
 import { displaySrc } from "@/lib/display-src";
 import { useEditor } from "@/store/editor";
 import type { ImageProps } from "@/types/blocks";
@@ -9,9 +9,10 @@ import type { BlockComponentProps } from "./shared";
 export function ImageBlock({ block }: BlockComponentProps) {
   const props = block.props as ImageProps;
   const projectDir = useEditor((s) => s.projectDir);
+  const style = useBlockStyles(block);
 
   return (
-    <figure className="lw-image" style={resolveStyles(block.styles)}>
+    <figure className="lw-image" style={style}>
       {props.src ? (
         <img src={displaySrc(props.src, projectDir)} alt={props.alt} />
       ) : (

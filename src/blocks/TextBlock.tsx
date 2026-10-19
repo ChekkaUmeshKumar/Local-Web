@@ -1,5 +1,5 @@
 import { EditableText } from "@/components/canvas/EditableText";
-import { resolveStyles } from "@/lib/resolveStyles";
+import { useBlockStyles } from "@/lib/useBlockStyles";
 import { useEditor } from "@/store/editor";
 import type { TextProps } from "@/types/blocks";
 import type { BlockComponentProps } from "./shared";
@@ -12,9 +12,10 @@ import type { BlockComponentProps } from "./shared";
 export function TextBlock({ block }: BlockComponentProps) {
   const props = block.props as TextProps;
   const updateProps = useEditor((s) => s.updateProps);
+  const style = useBlockStyles(block);
 
   return (
-    <div className="lw-text" style={resolveStyles(block.styles)}>
+    <div className="lw-text" style={style}>
       <EditableText
         blockId={block.id}
         value={props.text}

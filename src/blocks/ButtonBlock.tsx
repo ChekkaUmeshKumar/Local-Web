@@ -1,5 +1,5 @@
 import { EditableText } from "@/components/canvas/EditableText";
-import { resolveStyles } from "@/lib/resolveStyles";
+import { useBlockStyles } from "@/lib/useBlockStyles";
 import { useEditor } from "@/store/editor";
 import type { ButtonProps } from "@/types/blocks";
 import type { BlockComponentProps } from "./shared";
@@ -10,12 +10,13 @@ import type { BlockComponentProps } from "./shared";
 export function ButtonBlock({ block }: BlockComponentProps) {
   const props = block.props as ButtonProps;
   const updateProps = useEditor((s) => s.updateProps);
+  const style = useBlockStyles(block);
 
   return (
     <a
       className="lw-btn"
       href={props.href}
-      style={resolveStyles(block.styles)}
+      style={style}
       onClick={(e) => e.preventDefault()} // canvas is not a browser
       {...(props.newTab ? { target: "_blank", rel: "noreferrer" } : {})}
     >

@@ -72,4 +72,21 @@ describe("resolveStyles", () => {
     const out = resolveStyles({ background: { image: "assets/my photo.jpg" } });
     expect(out.backgroundImage).toBe('url("assets/my photo.jpg")');
   });
+
+  it("maps the background image through resolveAsset when provided", () => {
+    const out = resolveStyles(
+      { background: { image: "assets/hero.jpg" } },
+      { resolveAsset: (rel) => `asset://converted/${rel}` },
+    );
+    expect(out.backgroundImage).toBe('url("asset://converted/assets/hero.jpg")');
+  });
+
+  it("leaves absolute URLs untouched even with resolveAsset", () => {
+    const keep = (rel: string) => `x:${rel}`;
+    const out = resolveStyles(
+      { background: { image: "https://example.com/a.png" } },
+      { resolveAsset: keep },
+    );
+    expect(out.backgroundImage).toBe('url("x:https://example.com/a.png")');
+  });
 });

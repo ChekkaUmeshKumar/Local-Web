@@ -21,7 +21,16 @@ import {
   SPACING,
 } from "@/styles/tokens";
 
-export function resolveStyles(s: BlockStyles = {}): CSSProperties {
+export interface ResolveStylesOptions {
+  /**
+   * Maps a stored relative asset path ("assets/foo.png") to a loadable URL.
+   * The canvas passes the asset-protocol converter; the export generator
+   * (Phase 4) uses the relative path untouched. One resolver, two consumers.
+   */
+  resolveAsset?: (relative: string) => string;
+}
+
+export function resolveStyles(s: BlockStyles = {}, opts: ResolveStylesOptions = {}): CSSProperties {
   const out: CSSProperties = {};
 
   const t = s.typography;
@@ -48,7 +57,8 @@ export function resolveStyles(s: BlockStyles = {}): CSSProperties {
   const bg = s.background;
   if (bg?.color) out.backgroundColor = bg.color;
   if (bg?.image) {
-    out.backgroundImage = `url("${bg.image}")`;
+    const url = opts.resolveAsset ? opts.resolveAsset(bg.image) : bg.image;
+    out.backgroundImage = `url("${url}")`;
     out.backgroundSize = "cover";
     out.backgroundPosition = "center";
   }
