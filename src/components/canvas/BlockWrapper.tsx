@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { activePage } from "@/types/blocks";
 import type { BlockNode } from "@/types/blocks";
 import { findBlock } from "@/lib/tree";
+import { REGISTRY } from "@/blocks/registry";
 import { useEditor } from "@/store/editor";
 
 interface BlockWrapperProps {
@@ -90,6 +91,10 @@ export function BlockWrapper({ block, parentId, children }: BlockWrapperProps) {
           className="absolute -top-3 right-2 z-30 flex items-center gap-0.5 rounded-md border bg-white p-0.5 text-neutral-700 shadow-md"
           onClick={(e) => e.stopPropagation()} // keep selection when using tools
         >
+          {/* Always show WHAT is selected — the #1 builder confusion fix. */}
+          <span className="px-1.5 text-[10px] font-semibold text-neutral-500">
+            {REGISTRY[block.type].label}
+          </span>
           <Button
             variant="ghost"
             size="icon"

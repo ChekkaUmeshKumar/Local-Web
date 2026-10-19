@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from "react";
+import { ChevronUp } from "lucide-react";
 import { REGISTRY } from "@/blocks/registry";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,11 +19,23 @@ export function InspectorPanel() {
   const selectedId = useEditor((s) => s.selectedId);
   const tree = useEditor((s) => activePage(s.project).tree);
   const projectName = useEditor((s) => s.project.name);
+  const select = useEditor((s) => s.select);
 
   const block = useMemo(
     () => (selectedId ? (findBlock(tree, selectedId)?.block ?? null) : null),
     [selectedId, tree],
   );
+
+  // When the selection sits inside a section, offer a one-click "select parent".
+  const parent = useMemo(() => {
+    if (!selectedId) return null;
+    const loc = findBlock(tree, selectedId);
+    if (!loc?.parentId) return null;
+    const parentBlock = findBlock(tree, loc.parentId)?.block;
+    return parentBlock
+      ? { id: parentBlock.id, label: REGISTRY[parentBlock.type].label }
+      : null;
+  }, [selectedId, tree]);
 
   if (!block) {
     return (
@@ -56,6 +69,19 @@ export function InspectorPanel() {
           {meta.group}
         </span>
       </div>
+
+      {parent && (
+        <button
+          type="button"
+          onClick={() => select(parent.id)}
+          className="mx-4 mb-2 flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          title={`This ${meta.label} sits inside the ${parent.label} — select the ${parent.label} to style the whole section (background, colors, padding…)`}
+        >
+          <ChevronUp className="size-3.5" />
+          Inside {parent.label} — select the whole section
+        </button>
+      )}
+
       <Separator />
 
       <Tabs defaultValue="style" className="flex min-h-0 flex-1 flex-col">
