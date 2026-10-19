@@ -87,13 +87,13 @@ export function BlockWrapper({ block, parentId, children }: BlockWrapperProps) {
 
       {isSelected && (
         <div
-          className="absolute -top-3 right-2 z-30 flex items-center gap-0.5 rounded-md border bg-white p-0.5 shadow-md"
+          className="absolute -top-3 right-2 z-30 flex items-center gap-0.5 rounded-md border bg-white p-0.5 text-neutral-700 shadow-md"
           onClick={(e) => e.stopPropagation()} // keep selection when using tools
         >
           <Button
             variant="ghost"
             size="icon"
-            className="size-6"
+            className="size-6 hover:bg-neutral-100 hover:text-neutral-900"
             title="Move up"
             onClick={() => nudge(-1)}
           >
@@ -102,7 +102,7 @@ export function BlockWrapper({ block, parentId, children }: BlockWrapperProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6"
+            className="size-6 hover:bg-neutral-100 hover:text-neutral-900"
             title="Move down"
             onClick={() => nudge(1)}
           >
@@ -111,7 +111,7 @@ export function BlockWrapper({ block, parentId, children }: BlockWrapperProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6"
+            className="size-6 hover:bg-neutral-100 hover:text-neutral-900"
             title="Duplicate"
             onClick={() => duplicateBlock(block.id)}
           >
@@ -120,7 +120,7 @@ export function BlockWrapper({ block, parentId, children }: BlockWrapperProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 text-red-600"
+            className="size-6 text-red-600 hover:bg-red-50 hover:text-red-700"
             title="Delete"
             onClick={handleDelete}
           >
