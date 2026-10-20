@@ -23,8 +23,13 @@ export function BlockRenderer({ block, parentId }: BlockRendererProps) {
   const meta = REGISTRY[block.type];
   const Component = BLOCK_COMPONENTS[block.type];
 
+  // Sections that accept children render the drop zone INSIDE their
+  // children slot — the section shell (lw-hero/lw-footer, its style,
+  // background, padding) must exist so it can be selected and styled.
   const content: ReactNode = meta.acceptsChildren ? (
-    <SectionDropZone block={block} />
+    <Component block={block}>
+      <SectionDropZone block={block} />
+    </Component>
   ) : (
     <Component block={block} />
   );
