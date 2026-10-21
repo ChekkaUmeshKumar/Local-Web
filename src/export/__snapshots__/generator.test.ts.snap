@@ -1,0 +1,404 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generator > golden snapshot of the whole generated site (update = intentional change) 1`] = `
+{
+  "css": "/* styles.css — generated with LocalWeb */
+
+/* ─── Base layer: reset, block defaults and responsive rules ───
+     (identical to what the editor canvas renders) ─── */
+/* ============================================================================
+   LocalWeb base layer — Layer 1 of the style architecture.
+   Default look + ALL responsive rules for the 8 blocks. This file is
+   imported by the canvas AND copied verbatim into exported styles.css
+   (Phase 4). Users never edit it (locked: no custom CSS in v1).
+   One hidden system breakpoint: 768px. No manual breakpoints — ever.
+   ============================================================================ */
+
+/* ── 1. Reset (export-safe; harmless in the editor, where Tailwind
+      preflight already applies the same rules) ────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, p, figure, figcaption, nav, header, footer, section, span, div {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+[contenteditable="true"] {
+  caret-color: currentColor;
+}
+
+/* ── 2. Navbar ───────────────────────────────────────────────────── */
+.lw-navbar {
+  position: relative; /* anchors the open mobile menu below */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.lw-navbar__brand {
+  color: var(--lw-text-color, #0f172a);
+  font-family: var(--lw-font-family, inherit);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.lw-navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.lw-navbar__links a {
+  font-size: 0.9375rem;
+  color: #475569;
+  transition: color 0.15s ease;
+}
+
+.lw-navbar__links a:hover {
+  color: #0f172a;
+}
+
+.lw-navbar__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+/* ── 3. Hero ─────────────────────────────────────────────────────── */
+.lw-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 96px 24px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.lw-hero__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 768px;
+}
+
+/* Auto-scaling display sizes inside a hero. */
+.lw-hero .lw-heading {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+/* ── 4. Heading ──────────────────────────────────────────────────── */
+.lw-heading {
+  /* var() = a section-level text color / font cascades in; the fallback
+     is the heading's own default. A style set on THIS block overrides it. */
+  color: var(--lw-text-color, #0f172a);
+  font-family: var(--lw-font-family, inherit);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+}
+
+h1.lw-heading { font-size: clamp(2.25rem, 4.5vw, 3rem); }
+h2.lw-heading { font-size: clamp(1.875rem, 3.5vw, 2.5rem); }
+h3.lw-heading { font-size: clamp(1.5rem, 3vw, 2rem); }
+h4.lw-heading { font-size: 1.25rem; }
+
+/* ── 5. Text ─────────────────────────────────────────────────────── */
+.lw-text {
+  color: var(--lw-text-color, #475569);
+  font-family: var(--lw-font-family, inherit);
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 65ch;
+  margin-inline: auto;
+  white-space: pre-line; /* "\\n" in stored text renders as a line break */
+  overflow-wrap: break-word;
+}
+
+/* ── 6. Image ────────────────────────────────────────────────────── */
+.lw-image {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.lw-image img {
+  width: auto;
+  max-height: 480px;
+  border-radius: 8px;
+}
+
+.lw-image__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+  height: 192px;
+  border: 2px dashed #d4d4d8;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #a1a1aa;
+  font-size: 0.8125rem;
+}
+
+/* ── 7. Button (an anchor — CTA links only, never forms) ──────────── */
+.lw-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.lw-btn:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+/* ── 8. Link ─────────────────────────────────────────────────────── */
+.lw-link {
+  color: #2563eb;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.lw-link:hover {
+  color: #1d4ed8;
+}
+
+/* ── 9. Footer ────────────────────────────────────────────────────── */
+.lw-footer {
+  padding: 40px 32px;
+  background: #0f172a;
+  color: #94a3b8;
+}
+
+.lw-footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lw-footer__brand {
+  color: var(--lw-text-color, #f1f5f9);
+  font-family: var(--lw-font-family, inherit);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.lw-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.lw-footer__links a {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
+}
+
+.lw-footer__links a:hover {
+  color: #f1f5f9;
+}
+
+.lw-footer__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.lw-footer__copy {
+  color: var(--lw-text-color, #64748b);
+  font-family: var(--lw-font-family, inherit);
+  font-size: 0.8125rem;
+}
+
+/* ══ THE one responsive breakpoint (hidden system value) ═══════════ */
+@media (max-width: 768px) {
+  .lw-navbar {
+    padding: 12px 16px;
+  }
+
+  .lw-navbar__links {
+    display: none; /* hamburger takes over via script.js (Phase 4) */
+  }
+
+  .lw-navbar__toggle {
+    display: inline-flex;
+  }
+
+  /* Open state — flipped by script.js (export/preview); the canvas
+     stays in edit mode, so it never needs this behavior. */
+  .lw-navbar__open .lw-navbar__links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .lw-hero {
+    padding: 48px 16px;
+  }
+
+  .lw-text {
+    max-width: 100%;
+  }
+
+  .lw-footer {
+    padding: 32px 16px;
+    text-align: center;
+  }
+
+  .lw-footer__top {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lw-footer__body {
+    align-items: center;
+  }
+}
+
+
+/* ─── Per-block overrides (styled in the editor) ─── */
+/* Hero */
+.b-block002 {
+  font-family: 'Playfair Display', Georgia, serif;
+  --lw-font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.25rem;
+  color: #f8fafc;
+  --lw-text-color: #f8fafc;
+  padding: 64px;
+  background-color: #0f172a;
+}
+",
+  "html": "<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture Site</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <header class="lw-navbar b-block001">
+    <a class="lw-navbar__brand" href="#">Your Brand</a>
+    <nav class="lw-navbar__links">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+    <button type="button" class="lw-navbar__toggle" aria-label="Toggle menu" aria-expanded="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+  </header>
+  <!-- Hero -->
+  <section class="lw-hero b-block002">
+    <div class="lw-hero__inner">
+      <h2 class="lw-heading b-block003">A headline that sells</h2>
+      <div class="lw-text b-block004">Welcome to your new site.
+Replace this with your own story.</div>
+      <a class="lw-btn b-block005" href="#">Get started</a>
+    </div>
+  </section>
+  <!-- Heading -->
+  <h2 class="lw-heading b-block006">Try &lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;</h2>
+  <!-- Image -->
+  <figure class="lw-image b-block007">
+    <img src="assets/pic.png" alt="A photo">
+  </figure>
+  <script src="script.js"></script>
+</body>
+</html>
+",
+  "js": "/* script.js — generated with LocalWeb */
+(function () {
+  "use strict";
+
+  // Mobile navigation toggle
+  var toggle = document.querySelector(".lw-navbar__toggle");
+  var navbar = document.querySelector(".lw-navbar");
+  if (toggle && navbar) {
+    toggle.addEventListener("click", function () {
+      var open = navbar.classList.toggle("lw-navbar__open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  // Smooth scroll for anchor links that point at a real element
+  document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      var id = link.getAttribute("href");
+      if (!id || id === "#") return;
+      var target = null;
+      try { target = document.querySelector(id); } catch (err) { /* bad selector */ }
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  });
+})();
+",
+}
+`;

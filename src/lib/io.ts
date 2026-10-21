@@ -87,6 +87,41 @@ export async function createProjectOnDisk(
   return { project, dir };
 }
 
+/** A ready-made project + the sample files that belong in its assets/. */
+export interface ProjectSeed {
+  project: Project;
+  sampleFiles: Array<{ fileName: string; content: string }>;
+}
+
+/**
+ * Create a project from a template seed: folder + assets dir + sample
+ * files copied in, then the (already fully-populated) project.json.
+ * The project is self-contained — no dependency on the app.
+ */
+export async function createProjectFromSeed(
+  name: string,
+  parentDirectory: string,
+  seed: ProjectSeed,
+): Promise<{ project: Project; dir: string }> {
+  const dir = joinPath(parentDirectory, slugify(name));
+  if (await exists(dir)) {
+    throw new Error(`"${dir}" already exists — pick another name or location.`);
+  }
+  await mkdir(dir);
+
+  const assetsPath = assetsDirPath(dir);
+  await mkdir(assetsPath);
+  for (const file of seed.sampleFiles) {
+    await writeFile(
+      joinPath(assetsPath, file.fileName),
+      new TextEncoder().encode(file.content),
+    );
+  }
+
+  await saveProjectToDisk(seed.project, dir);
+  return { project: seed.project, dir };
+}
+
 /** Serialize + write the project file (pretty JSON, 2 spaces). */
 export async function saveProjectToDisk(project: Project, dir: string): Promise<void> {
   await writeFile(projectFilePath(dir), new TextEncoder().encode(JSON.stringify(project, null, 2)));

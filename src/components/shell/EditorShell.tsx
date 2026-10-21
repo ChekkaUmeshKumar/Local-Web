@@ -16,6 +16,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { useState } from "react";
 import { REGISTRY } from "@/blocks/registry";
 import { activePage, type BlockType } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
@@ -27,6 +28,7 @@ import {
   type ActiveDrag,
 } from "@/components/canvas/dnd";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { PreviewFrame, type Device } from "@/components/canvas/PreviewFrame";
 import { TopBar } from "./TopBar";
 import { BlocksPanel } from "./BlocksPanel";
 import { Canvas } from "./Canvas";
@@ -46,6 +48,9 @@ function EditorShellInner() {
   );
   const { dropTarget, setDropTarget, activeDrag, setActiveDrag } = useDndUi();
   useKeyboardShortcuts();
+
+  const previewMode = useEditor((s) => s.previewMode);
+  const [device, setDevice] = useState<Device>("desktop");
 
   const readDragged = (data: Record<string, unknown> | undefined): ActiveDrag | null => {
     if (!data) return null;
@@ -97,11 +102,24 @@ function EditorShellInner() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="grid h-screen w-screen grid-cols-[260px_minmax(0,1fr)_300px] grid-rows-[48px_minmax(0,1fr)] overflow-hidden bg-background text-foreground">
+      <div
+        className={
+          "grid h-screen w-screen overflow-hidden bg-background text-foreground " +
+          (previewMode
+            ? "grid-cols-[minmax(0,1fr)] grid-rows-[48px_minmax(0,1fr)]"
+            : "grid-cols-[260px_minmax(0,1fr)_300px] grid-rows-[48px_minmax(0,1fr)]")
+        }
+      >
         <TopBar />
-        <BlocksPanel />
-        <Canvas />
-        <InspectorPanel />
+        {previewMode ? (
+          <PreviewFrame device={device} onDeviceChange={setDevice} />
+        ) : (
+          <>
+            <BlocksPanel />
+            <Canvas />
+            <InspectorPanel />
+          </>
+        )}
       </div>
 
       <DragOverlay>

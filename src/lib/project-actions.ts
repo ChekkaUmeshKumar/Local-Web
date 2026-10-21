@@ -8,8 +8,10 @@ import { toast } from "sonner";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { activePage } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
+import type { TemplateDef } from "@/templates/types";
 import {
   addRecentProject,
+  createProjectFromSeed,
   createProjectOnDisk,
   openProjectFromDisk,
   projectFilePath,
@@ -44,6 +46,28 @@ export async function createProjectFlow(name: string, parentDir: string): Promis
     useEditor.getState().hydrate(project, dir);
     await addRecentProject({ name: project.name, dir, updatedAt: new Date().toISOString() });
     toast.success("Project created", { description: dir });
+    return true;
+  } catch (err) {
+    toast.error("Couldn't create the project", {
+      description: err instanceof Error ? err.message : String(err),
+    });
+    return false;
+  }
+}
+
+/** Create a project pre-filled from a template (sample assets included). */
+export async function createTemplateProjectFlow(
+  name: string,
+  parentDir: string,
+  template: TemplateDef,
+): Promise<boolean> {
+  try {
+    const { project, dir } = await createProjectFromSeed(name, parentDir, template.create(name));
+    useEditor.getState().hydrate(project, dir);
+    await addRecentProject({ name: project.name, dir, updatedAt: new Date().toISOString() });
+    toast.success(`${template.name} project created`, {
+      description: "Everything is editable — make it yours.",
+    });
     return true;
   } catch (err) {
     toast.error("Couldn't create the project", {

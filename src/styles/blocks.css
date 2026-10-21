@@ -41,6 +41,7 @@ a {
 
 /* ── 2. Navbar ───────────────────────────────────────────────────── */
 .lw-navbar {
+  position: relative; /* anchors the open mobile menu below */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -265,6 +266,22 @@ h4.lw-heading { font-size: 1.25rem; }
 
   .lw-navbar__toggle {
     display: inline-flex;
+  }
+
+  /* Open state — flipped by script.js (export/preview); the canvas
+     stays in edit mode, so it never needs this behavior. */
+  .lw-navbar__open .lw-navbar__links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
   }
 
   .lw-hero {

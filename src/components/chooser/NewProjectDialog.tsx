@@ -1,6 +1,8 @@
 /**
  * New project dialog: name + parent folder → creates
  * `<parent>/<slug>/project.json` + `assets/` and opens it.
+ * In template mode, the project comes pre-filled with the template's
+ * tree and its bundled sample assets.
  */
 
 import { useState } from "react";
@@ -17,17 +19,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createProjectFlow } from "@/lib/project-actions";
+import { createProjectFlow, createTemplateProjectFlow } from "@/lib/project-actions";
+import type { TemplateDef } from "@/templates/types";
 
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When set, the new project starts from this template. */
+  template?: TemplateDef | null;
 }
 
-export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) {
+export function NewProjectDialog({ open, onOpenChange, template = null }: NewProjectDialogProps) {
   const [name, setName] = useState("My Website");
   const [parentDir, setParentDir] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const defaultName = template ? template.name : "My Website";
+  // Follow the selected template when it changes (cards reuse one dialog).
+  const [lastTemplate, setLastTemplate] = useState<TemplateDef | null>(template);
+  if (template !== lastTemplate) {
+    setLastTemplate(template);
+    setName(defaultName);
+  }
 
   const pickFolder = async () => {
     const dir = await openDirectoryDialog({
@@ -41,7 +54,9 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
     const trimmed = name.trim();
     if (!trimmed || !parentDir || busy) return;
     setBusy(true);
-    const ok = await createProjectFlow(trimmed, parentDir);
+    const ok = template
+      ? await createTemplateProjectFlow(trimmed, parentDir, template)
+      : await createProjectFlow(trimmed, parentDir);
     setBusy(false);
     if (ok) {
       onOpenChange(false);
@@ -54,10 +69,21 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New project</DialogTitle>
+          <DialogTitle>{template ? `New ${template.name} project` : "New project"}</DialogTitle>
           <DialogDescription>
-            Creates a new folder with a <code className="text-xs">project.json</code> and an{" "}
-            <code className="text-xs">assets</code> folder inside.
+            {template ? (
+              <>
+                Starts from the {template.name} template — everything stays editable.{" "}
+                <span className="hidden">
+                  <code className="text-xs">project.json</code>
+                </span>
+              </>
+            ) : (
+              <>
+                Creates a new folder with a <code className="text-xs">project.json</code> and an{" "}
+                <code className="text-xs">assets</code> folder inside.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,7 +94,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
               id="project-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Website"
+              placeholder={defaultName}
               autoFocus
             />
           </div>
@@ -102,7 +128,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             disabled={!name.trim() || !parentDir || busy}
           >
             {busy && <Loader2 className="animate-spin" />}
-            Create project
+            {template ? "Create from template" : "Create project"}
           </Button>
         </DialogFooter>
       </DialogContent>

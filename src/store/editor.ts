@@ -48,6 +48,8 @@ export interface EditorState {
   /** Editing region key: `<blockId>` or `<blockId>#<region>`; null = not editing. */
   editingTextId: string | null;
   dirty: boolean;
+  /** Preview mode shows the generator's real output instead of the editor. */
+  previewMode: boolean;
 
   // ── actions ──
   addBlock: (type: BlockType, parentId: string | null, index: number) => void;
@@ -58,6 +60,8 @@ export interface EditorState {
   updateStyles: (id: string, patch: BlockStyles) => void;
   select: (id: string | null) => void;
   setEditingText: (key: string | null) => void;
+  /** Toggle preview; entering preview never strands an in-progress text edit. */
+  setPreviewMode: (on: boolean) => void;
   setProjectName: (name: string) => void;
   /** Replace the whole project (New/Open). Resets history. */
   hydrate: (project: Project, dir: string) => void;
@@ -108,6 +112,7 @@ export const useEditor = create<EditorState>()(
       selectedId: null,
       editingTextId: null,
       dirty: false,
+      previewMode: false,
 
       addBlock: (type, parentId, index) =>
         set((s) => {
@@ -168,6 +173,16 @@ export const useEditor = create<EditorState>()(
       select: (id) => set((s) => (s.selectedId === id ? {} : { selectedId: id })),
 
       setEditingText: (key) => set({ editingTextId: key }),
+
+      setPreviewMode: (on) =>
+        set((s) =>
+          s.previewMode === on
+            ? {}
+            : {
+                previewMode: on,
+                editingTextId: null, // the canvas unmounts; never strand an edit
+              },
+        ),
 
       setProjectName: (name) =>
         set((s) => ({

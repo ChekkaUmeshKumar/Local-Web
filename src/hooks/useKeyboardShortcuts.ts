@@ -2,6 +2,7 @@
  * Global keyboard shortcuts (editor only):
  *
  *   Ctrl+S            save (works even while typing — universal reflex)
+ *   Ctrl+P            toggle preview (not while typing in a field)
  *   Ctrl+Z             undo        ┐ disabled while a text region is
  *   Ctrl+Shift+Z / Y   redo        ┘ being edited (Rule 4) or a field
  *   Delete / Backspace remove the selected block
@@ -47,6 +48,13 @@ export function useKeyboardShortcuts() {
 
       // Everything else is deferred to the focused region / field.
       if (state.editingTextId !== null || isTypingInField()) return;
+
+      // Ctrl+P — toggle preview.
+      if (mod && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        state.setPreviewMode(!state.previewMode);
+        return;
+      }
 
       if (mod && !e.shiftKey && e.key.toLowerCase() === "z") {
         e.preventDefault();

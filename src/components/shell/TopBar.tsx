@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { Eye, FilePlus2, FolderOpen, Package, Redo2, Save, Undo2 } from "lucide-react";
+import { Eye, FilePlus2, FolderOpen, Package, Pencil, Redo2, Save, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,6 +22,8 @@ export function TopBar() {
   const projectName = useEditor((s) => s.project.name);
   const projectDir = useEditor((s) => s.projectDir);
   const dirty = useEditor((s) => s.dirty);
+  const previewMode = useEditor((s) => s.previewMode);
+  const setPreviewMode = useEditor((s) => s.setPreviewMode);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   const [newOpen, setNewOpen] = useState(false);
@@ -129,18 +131,23 @@ export function TopBar() {
 
       <Separator orientation="vertical" className="mx-1 h-6" />
 
-      {/* Phase 4 / 5 placeholders */}
+      {/* Preview / Edit toggle (Ctrl+P) */}
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
-            <Button size="sm" variant="ghost" disabled>
-              <Eye />
-              Preview
+            <Button
+              size="sm"
+              variant={previewMode ? "default" : "ghost"}
+              onClick={() => setPreviewMode(!previewMode)}
+            >
+              {previewMode ? <Pencil /> : <Eye />}
+              {previewMode ? "Edit" : "Preview"}
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>Preview arrives in Phase 4</TooltipContent>
+        <TooltipContent>Preview (Ctrl+P)</TooltipContent>
       </Tooltip>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <span>

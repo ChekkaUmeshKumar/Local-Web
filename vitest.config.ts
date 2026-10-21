@@ -12,5 +12,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
+    // Needed so `import blocksCss from "…​/blocks.css?raw"` returns the real
+    // file content in tests (vitest replaces CSS with empty strings by default).
+    css: true,
   },
 });
