@@ -3,6 +3,7 @@
  *
  *   Ctrl+S            save (works even while typing — universal reflex)
  *   Ctrl+P            toggle preview (not while typing in a field)
+ *   Ctrl+E            open the export dialog
  *   Ctrl+Z             undo        ┐ disabled while a text region is
  *   Ctrl+Shift+Z / Y   redo        ┘ being edited (Rule 4) or a field
  *   Delete / Backspace remove the selected block
@@ -53,6 +54,13 @@ export function useKeyboardShortcuts() {
       if (mod && e.key.toLowerCase() === "p") {
         e.preventDefault();
         state.setPreviewMode(!state.previewMode);
+        return;
+      }
+
+      // Ctrl+E — export dialog.
+      if (mod && e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        state.setExportDialogOpen(true);
         return;
       }
 

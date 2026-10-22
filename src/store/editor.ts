@@ -50,6 +50,8 @@ export interface EditorState {
   dirty: boolean;
   /** Preview mode shows the generator's real output instead of the editor. */
   previewMode: boolean;
+  /** Export dialog visibility (TopBar button + Ctrl+E). */
+  exportDialogOpen: boolean;
 
   // ── actions ──
   addBlock: (type: BlockType, parentId: string | null, index: number) => void;
@@ -62,6 +64,7 @@ export interface EditorState {
   setEditingText: (key: string | null) => void;
   /** Toggle preview; entering preview never strands an in-progress text edit. */
   setPreviewMode: (on: boolean) => void;
+  setExportDialogOpen: (open: boolean) => void;
   setProjectName: (name: string) => void;
   /** Replace the whole project (New/Open). Resets history. */
   hydrate: (project: Project, dir: string) => void;
@@ -113,6 +116,7 @@ export const useEditor = create<EditorState>()(
       editingTextId: null,
       dirty: false,
       previewMode: false,
+      exportDialogOpen: false,
 
       addBlock: (type, parentId, index) =>
         set((s) => {
@@ -183,6 +187,8 @@ export const useEditor = create<EditorState>()(
                 editingTextId: null, // the canvas unmounts; never strand an edit
               },
         ),
+
+      setExportDialogOpen: (open) => set({ exportDialogOpen: open }),
 
       setProjectName: (name) =>
         set((s) => ({
