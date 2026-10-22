@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { Eye, FilePlus2, FolderOpen, Package, Pencil, Redo2, Save, Undo2 } from "lucide-react";
+import { Eye, FilePlus2, FolderOpen, Info, Package, Pencil, Redo2, Save, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,7 +15,10 @@ import {
 } from "@/components/ui/tooltip";
 import { NewProjectDialog } from "@/components/chooser/NewProjectDialog";
 import { ConfirmDialog } from "@/components/shell/ConfirmDialog";
+import { ExportDialog } from "@/components/shell/ExportDialog";
+import { AboutDialog } from "@/components/shell/AboutDialog";
 import { openProjectFlow, saveCurrentProject } from "@/lib/project-actions";
+import { activePage } from "@/types/blocks";
 import { useEditor, useUndoRedo } from "@/store/editor";
 
 export function TopBar() {
@@ -24,9 +27,13 @@ export function TopBar() {
   const dirty = useEditor((s) => s.dirty);
   const previewMode = useEditor((s) => s.previewMode);
   const setPreviewMode = useEditor((s) => s.setPreviewMode);
+  const exportDialogOpen = useEditor((s) => s.exportDialogOpen);
+  const setExportDialogOpen = useEditor((s) => s.setExportDialogOpen);
+  const hasBlocks = useEditor((s) => activePage(s.project).tree.length > 0);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   const [newOpen, setNewOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [pending, setPending] = useState<"new" | "open" | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -151,14 +158,35 @@ export function TopBar() {
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
-            <Button size="sm" disabled>
+            <Button
+              size="sm"
+              onClick={() => setExportDialogOpen(true)}
+              disabled={!hasBlocks}
+            >
               <Package />
               Export
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>Export arrives in Phase 5</TooltipContent>
+        <TooltipContent>
+          {hasBlocks ? "Export (Ctrl+E)" : "Add a block first to export"}
+        </TooltipContent>
       </Tooltip>
+
+      {/* About */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        title="About LocalWeb"
+        onClick={() => setAboutOpen(true)}
+      >
+        <Info />
+      </Button>
+
+      {/* Dialogs */}
+      <ExportDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen} />
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
 
       {/* Dialogs */}
       <NewProjectDialog open={newOpen} onOpenChange={setNewOpen} />

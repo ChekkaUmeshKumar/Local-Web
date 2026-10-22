@@ -1,11 +1,13 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { MousePointerSquareDashed } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { activePage } from "@/types/blocks";
 import { useEditor } from "@/store/editor";
 import { BlockRenderer } from "@/components/canvas/BlockRenderer";
 import { DropLine, useDndUi } from "@/components/canvas/dnd";
+import { loadSettings, saveSettings } from "@/lib/settings";
 
 /**
  * Canvas — the page surface. Renders the block tree from the store on a
@@ -69,10 +71,48 @@ export function Canvas() {
 }
 
 /**
- * The no-tutorial onboarding card (doubles as the empty state).
- * It directly supports the 10-minute success metric.
+ * The no-tutorial onboarding. The first run (per machine) shows the
+ * four-step card with a "Got it" button — the success-metric safety
+ * net. After dismissal (persisted in settings.json) it shrinks to the
+ * light hint.
  */
 function EmptyCanvasHint() {
+  const [hintSeen, setHintSeen] = useState<boolean | null>(null); // null = loading
+
+  useEffect(() => {
+    void loadSettings().then((s) => setHintSeen(s.firstRunHintSeen));
+  }, []);
+
+  if (hintSeen === null) return null;
+
+  if (!hintSeen) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center text-neutral-400">
+        <MousePointerSquareDashed className="size-8 opacity-60" />
+        <p className="text-sm font-medium text-neutral-500">
+          Welcome! Build your website in four steps
+        </p>
+        <ol className="flex flex-col gap-1 text-xs leading-relaxed">
+          <li>1. Drag a block from the left panel</li>
+          <li>2. Click text to edit it</li>
+          <li>3. Preview at any device size</li>
+          <li>4. Export your finished site</li>
+        </ol>
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-2 text-neutral-700"
+          onClick={() => {
+            setHintSeen(true);
+            void saveSettings({ firstRunHintSeen: true });
+          }}
+        >
+          Got it
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center text-neutral-400">
       <MousePointerSquareDashed className="size-8 opacity-60" />

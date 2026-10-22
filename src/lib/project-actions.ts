@@ -11,10 +11,13 @@ import { useEditor } from "@/store/editor";
 import type { TemplateDef } from "@/templates/types";
 import {
   addRecentProject,
+  CorruptedProjectError,
   createProjectFromSeed,
   createProjectOnDisk,
   openProjectFromDisk,
+  parentDir,
   projectFilePath,
+  restoreBackupToMain,
   saveProjectToDisk,
 } from "@/lib/io";
 
@@ -100,10 +103,34 @@ export async function loadAndHydrate(jsonPath: string): Promise<boolean> {
     });
     return true;
   } catch (err) {
+    if (err instanceof CorruptedProjectError && err.backupAvailable) {
+      // The last save's backup survives — offer a one-click restore.
+      toast.error("Project file is corrupted", {
+        description: "A backup from the last save exists.",
+        action: {
+          label: "Restore backup",
+          onClick: () => void restoreBackupAndOpen(jsonPath),
+        },
+      });
+      return false;
+    }
     toast.error("Couldn't open the project", {
       description: err instanceof Error ? err.message : String(err),
     });
     return false;
+  }
+}
+
+/** Restore the rotated backup over the corrupted file, then open it. */
+export async function restoreBackupAndOpen(jsonPath: string): Promise<void> {
+  try {
+    await restoreBackupToMain(parentDir(jsonPath));
+    toast.success("Backup restored");
+    await loadAndHydrate(jsonPath);
+  } catch (err) {
+    toast.error("Couldn't restore the backup", {
+      description: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 

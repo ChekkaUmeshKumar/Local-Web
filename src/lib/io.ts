@@ -16,6 +16,7 @@ import {
   copyFile,
   exists,
   mkdir,
+  readFile,
   readTextFile,
   remove,
   size,
@@ -23,11 +24,12 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { appConfigDir, join } from "@tauri-apps/api/path";
 import { nanoid } from "nanoid";
-import { SCHEMA_VERSION } from "@/types/blocks";
 import type { AssetRecord, Project } from "@/types/blocks";
 import { createEmptyProject } from "@/lib/tree";
+import { migrateProject } from "@/lib/migrate";
 
 export const PROJECT_FILE = "project.json";
+export const BACKUP_FILE = "project.backup.json";
 export const ASSETS_DIR = "assets";
 const CORRUPTED_BACKUP = "project.corrupted-backup.json";
 
@@ -122,9 +124,23 @@ export async function createProjectFromSeed(
   return { project: seed.project, dir };
 }
 
-/** Serialize + write the project file (pretty JSON, 2 spaces). */
+/** Serialize + write the project file (pretty JSON, 2 spaces).
+ *  Crash safety: the previous save is rotated into project.backup.json
+ *  BEFORE the new one lands — a crash mid-write never costs the last save. */
 export async function saveProjectToDisk(project: Project, dir: string): Promise<void> {
-  await writeFile(projectFilePath(dir), new TextEncoder().encode(JSON.stringify(project, null, 2)));
+  const main = projectFilePath(dir);
+  const backup = joinPath(dir, BACKUP_FILE);
+
+  if (await exists(main)) {
+    try {
+      const previous = await readFile(main);
+      await writeFile(backup, new Uint8Array(previous));
+    } catch {
+      /* backup rotation is best-effort */
+    }
+  }
+
+  await writeFile(main, new TextEncoder().encode(JSON.stringify(project, null, 2)));
 }
 
 export interface LoadedProject {
@@ -134,9 +150,27 @@ export interface LoadedProject {
 }
 
 /**
- * Read + validate a project.json. On CORRUPTED content, the broken file is
- * backed up next to itself and an error is thrown — we never crash and
- * never destroy the user's file.
+ * Corrupted project.json — with a lifeline when the last save's backup
+ * survives. The UI offers a one-click restore when backupAvailable.
+ */
+export class CorruptedProjectError extends Error {
+  constructor(
+    public readonly jsonPath: string,
+    public readonly backupAvailable: boolean,
+  ) {
+    super(
+      backupAvailable
+        ? "This project file is corrupted — a backup from the last save exists."
+        : "This project file is corrupted. A copy was saved next to it as project.corrupted-backup.json.",
+    );
+    this.name = "CorruptedProjectError";
+  }
+}
+
+/**
+ * Read + migrate + validate a project.json. On CORRUPTED content, the
+ * broken file is backed up next to itself and a typed error is thrown —
+ * we never crash and never destroy the user's file.
  */
 export async function openProjectFromDisk(jsonPath: string): Promise<LoadedProject> {
   const dir = parentDir(jsonPath);
@@ -157,27 +191,21 @@ export async function openProjectFromDisk(jsonPath: string): Promise<LoadedProje
     } catch {
       /* backup is best-effort */
     }
-    throw new Error(
-      "This project file is corrupted. A backup was saved next to it as project.corrupted-backup.json.",
-    );
+    throw new CorruptedProjectError(jsonPath, await backupIsUsable(dir));
   }
 
-  const project = validateProject(parsed);
+  // Migrate older versions first (v0.1 → v1.0 …), then check the shape.
+  const project = validateProject(migrateProject(parsed));
   return { project, dir, jsonPath };
 }
 
-/** Structural validation — version + pages + tree + assets. */
+/** Structural validation (shape only — versioning is migrate()'s job). */
 function validateProject(raw: unknown): Project {
   if (raw === null || typeof raw !== "object") {
     throw new Error("Not a valid LocalWeb project file.");
   }
   const p = raw as Record<string, unknown>;
 
-  if (p.version !== SCHEMA_VERSION) {
-    throw new Error(
-      `Unsupported project version "${String(p.version)}" — this file was created by a different version of LocalWeb.`,
-    );
-  }
   if (typeof p.name !== "string") throw new Error("Project file is missing its name.");
   if (!Array.isArray(p.pages) || p.pages.length === 0) {
     throw new Error("Project file has no pages.");
@@ -187,6 +215,33 @@ function validateProject(raw: unknown): Project {
   if (!Array.isArray(p.assets)) throw new Error("Project file has a broken asset list.");
 
   return raw as Project;
+}
+
+/** True when project.backup.json exists, parses, and validates. */
+async function backupIsUsable(dir: string): Promise<boolean> {
+  try {
+    const backup = joinPath(dir, BACKUP_FILE);
+    if (!(await exists(backup))) return false;
+    validateProject(migrateProject(JSON.parse(await readTextFile(backup))));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Restore the last save's backup over the corrupted main file.
+ * Writes DIRECTLY — routing through saveProjectToDisk would rotate the
+ * corrupted file into the very backup we are restoring FROM.
+ */
+export async function restoreBackupToMain(dir: string): Promise<void> {
+  const backup = joinPath(dir, BACKUP_FILE);
+  const raw = await readTextFile(backup); // throws if missing (caller checked)
+  const project = validateProject(migrateProject(JSON.parse(raw)));
+  await writeFile(
+    projectFilePath(dir),
+    new TextEncoder().encode(JSON.stringify(project, null, 2)),
+  );
 }
 
 /* ── recents (app config dir) ────────────────────────────────────── */

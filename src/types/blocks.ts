@@ -12,8 +12,9 @@
  * project files must never silently break.
  */
 
-/** Schema version written into project.json on disk. */
-export const SCHEMA_VERSION = "0.1";
+/** Schema version written into project.json on disk. Bumped to 1.0 for the
+ * v1.0 release — older files upgrade via migrateProject(). */
+export const SCHEMA_VERSION = "1.0";
 
 /** The 8 block types of v1 (locked — do not extend in v1). */
 export type BlockType =
